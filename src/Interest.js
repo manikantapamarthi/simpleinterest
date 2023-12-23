@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {Form, Row, Col} from "react-bootstrap";
+import Details from "./Details";
 
 
 function Interest () {
@@ -10,10 +11,10 @@ function Interest () {
     interest_rate: "",
     start_date: "",
     end_date: "",
-    days: ""
+    days: "",
+    interest: ""
   });
 
-  const[interest, setInterest] = useState("");
 
   function handleInputchange(e) {
     setData({
@@ -23,81 +24,83 @@ function Interest () {
   }
 
   useEffect(() => {
-    let days = getDays()
+    const days = getDays()
 
-    setData({
-      ...data,
-      ["days"]: days  
-    })
-
-    if (days) {
-      calulateInterest(days)
+    if (data["days"]) {
+      calulateInterest(data["days"])
     }
-  },[data["start_date"], data["end_date"]])
+  },[data["start_date"], data["end_date"], data["days"]])
 
   function getDays(){
     const start_date = new Date(data["start_date"])
     const end_date = new Date(data["end_date"])
     const Difference_In_Time = end_date.getTime() - start_date.getTime()
     const days = (Difference_In_Time / (1000 * 3600 * 24))
-    return days
-  
+    
+    setData({
+      ...data,
+      ["days"]: days  
+    })
   }
+
 
  function calulateInterest(days) {
   let time = days/360
   let interest = ((data["principal_amount"] * data["interest_rate"] * time) / 100)
 
-  setInterest(Math.round(interest))
+  setData({
+    ...data,
+    ['interest']: interest
+  })
  }
 
   return(
     <>
-      <Form.Group  as={Row} className="mb-3">
-        <Form.Label column sm={2} htmlFor="principal_amount">Principal Amount</Form.Label>
-        <Col sm={3}>
+      <Form.Group className="mb-3" as={Col} lg={4}>
+        <Form.Label column sm={5} htmlFor="principal_amount"><b>Principal Amount :</b></Form.Label>
+        
           <Form.Control
             type="number"
             name="principal_amount"
             id="principal_amount"
             onChange={(e) => handleInputchange(e)}
           />
-        </Col>
+        
       </Form.Group>
-      <Form.Group  as={Row} className="mb-3">
-        <Form.Label column sm={2} htmlFor="interest_rate">Interest Rate</Form.Label>
-        <Col sm={3}>
+      <Form.Group className="mb-3" as={Col} lg={4}>
+        <Form.Label column sm={5} htmlFor="interest_rate"><b>Interest Rate :</b></Form.Label>
+        
           <Form.Control
             type="number"
             id="interest_rate"
             name="interest_rate"
             onChange={(e) => handleInputchange(e)}
           />
-        </Col>
+        
       </Form.Group>
-      <Form.Group  as={Row} className="mb-3">
-        <Form.Label column sm={2} htmlFor="start_date">Start Date</Form.Label>
-        <Col sm={3}>
+      <Form.Group className="mb-3" as={Col} lg={4}>
+        <Form.Label column sm={5} htmlFor="start_date"><b>Start Date :</b></Form.Label>
+        
           <Form.Control
             type="date"
             name="start_date"
             id="start_date"
             onChange={(e) => handleInputchange(e)}
           />
-        </Col>
+        
       </Form.Group>
-      <Form.Group  as={Row} className="mb-3">
-        <Form.Label column sm={2} htmlFor="end_date">End Date</Form.Label>
-        <Col sm={3}>
+      <Form.Group className="mb-3" as={Col} lg={4}>
+        <Form.Label column sm={5} htmlFor="end_date"><b>End Date :</b></Form.Label>
+        
           <Form.Control
             type="date"
             id="end_date"
             name="end_date"
             onChange={(e) => handleInputchange(e)}
           />
-        </Col>
+        
       </Form.Group>
-      <p>{interest}</p>
+      <Details data={data}/>
     </>
   )
 }
