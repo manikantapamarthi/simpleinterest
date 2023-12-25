@@ -5,14 +5,16 @@ import Details from "./Details";
 
 function Interest () {
 
-
   const[data, setData] = useState({
     principal_amount: "",
     interest_rate: "",
     start_date: "",
     end_date: "",
     days: "",
-    interest: ""
+    interest: "",
+    interestType: "percent_per_annum",
+    months: "",
+    remainingDays: ""
   });
 
 
@@ -25,11 +27,24 @@ function Interest () {
 
   useEffect(() => {
     const days = getDays()
+    setData({
+      ...data,
+      ["days"]: days  
+    })
+    
+  },[data["start_date"], data["end_date"]])
 
+  useEffect(() => {
     if (data["days"]) {
       calulateInterest(data["days"])
     }
-  },[data["start_date"], data["end_date"], data["days"]])
+  },[data["days"]])
+  
+  useEffect(() => {
+    calulateInterest(data["days"])
+
+  }, [data["interestType"], data["interest_rate"]])
+
 
   function getDays(){
     const start_date = new Date(data["start_date"])
@@ -37,27 +52,42 @@ function Interest () {
     const Difference_In_Time = end_date.getTime() - start_date.getTime()
     const days = (Difference_In_Time / (1000 * 3600 * 24))
     
-    setData({
-      ...data,
-      ["days"]: days  
-    })
+    return days
   }
 
 
  function calulateInterest(days) {
-  let time = days/360
-  let interest = ((data["principal_amount"] * data["interest_rate"] * time) / 100)
+  var months = Math.floor(days / 30)
+  var remainingDays = days % 30
+  if(data["interestType"] === "percent_per_annum"){
+    let time = days/360
+    var interest = ((data["principal_amount"] * data["interest_rate"] * time) / 100)
+  } else {
+    const amount = data["principal_amount"] / 100
+    const monthlyInterest = amount * data["interest_rate"]
+    const perDay = monthlyInterest/30
+    var interest  = perDay * days
+  }
 
   setData({
     ...data,
-    ['interest']: interest
+    ['interest']: interest,
+    ['months']: months,
+    ['remainingDays']: remainingDays
+  })
+ }
+
+ function handleInterestType(e){
+  setData({
+    ...data,
+    ['interestType']: e.target.id
   })
  }
 
   return(
     <>
       <Form.Group className="mb-3" as={Col} lg={4}>
-        <Form.Label column sm={5} htmlFor="principal_amount"><b>Principal Amount :</b></Form.Label>
+        <Form.Label column sm={5} htmlFor="principal_amount"><b>Principal Amount(₹) :</b></Form.Label>
         
           <Form.Control
             type="number"
@@ -69,7 +99,29 @@ function Interest () {
       </Form.Group>
       <Form.Group className="mb-3" as={Col} lg={4}>
         <Form.Label column sm={5} htmlFor="interest_rate"><b>Interest Rate :</b></Form.Label>
-        
+          <Row>
+            <Col>
+              <Form.Check 
+                type="radio" 
+                label="Rupee per month(₹2)" 
+                id="rupee_per_month" 
+                name="interest_type"
+                checked={data["interestType"] == "rupee_per_month"}
+                onChange={(e) => handleInterestType(e)}
+              />
+            </Col>
+            <Col>
+              <Form.Check 
+                type="radio" 
+                label="Percent per annum(1%)" 
+                id="percent_per_annum" 
+                name="interest_type"
+                checked={data["interestType"] == "percent_per_annum"}
+                onChange={(e) => handleInterestType(e)}
+              />
+            </Col>
+          </Row>
+
           <Form.Control
             type="number"
             id="interest_rate"
@@ -98,8 +150,8 @@ function Interest () {
             name="end_date"
             onChange={(e) => handleInputchange(e)}
           />
-        
       </Form.Group>
+      <hr></hr>
       <Details data={data}/>
     </>
   )
